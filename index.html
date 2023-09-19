@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> 🎓 Polynomial Division Calculator </title>
+
+  <!-- MathJax -->
+  <script id="MathJax-script" async src="tex-mml-chtml.js"></script>
+
+  <!-- Tema CSS -->
+  <style>
+    :root {
+      --background-dark-95: #282828;
+      --background-dark-80: #333333;
+      --color-white-100: #ffffff;
+      --transition-default: 0.25s ease;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-dark-80);
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      color: white;
+    }
+
+    .header {
+      width: 100%;
+      height: 60px;
+      background-color: var(--background-dark-95);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      height: 40px;
+    }
+
+    .md-white-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 60px;
+      width: 100%;
+    }
+
+    .md-white {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .back-to-home {
+      margin: 50px;
+      padding: 3px 5px;
+      font-size: 14px;
+      background-color: #ff714a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-to-home:hover {
+      background-color: #e65c38;
+    }
+
+    .input-group {
+      margin: 80px 0 15px 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 5px;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="md-white-container">
+      <span class="md-white">MD White</span>
+    </div>
+  </div>
+
+  <!-- Polinom Hesaplayıcı -->
+  <h1 style="margin-top: 100px;"> 🎓 Polynomial Division Calculator</h1>
+  <div class="input-group">
+    <label for="dividend">Dividend Polynom (example: 3x^6 + 5x^3 - 2x^2 -7x +1):</label>
+    <input type="text" id="dividend" placeholder="3x^6 + 5x^3 - 2x^2 -7x +1">
+  </div>
+  <div class="input-group">
+    <label for="divisor">Divisor Polynom (example: x-3): </label>
+    <input type="text" id="divisor" placeholder="x-3">
+  </div>
+  <button onclick="dividePolynomials()">Calculate</button>
+  <div id="result"></div>
+
+  <!-- Polinom JS -->
+  <script>
+    function parsePolynomial(polyStr) {
+      polyStr = polyStr.replace(/\s+/g, '').replace(/-/g, '+-').toLowerCase();
+      if (polyStr[0] === '+') polyStr = polyStr.substring(1);
+      const terms = polyStr.split('+').filter(term => term !== '');
+
+      const poly = {};
+      terms.forEach(term => {
+        let [coeff, power] = term.split('x');
+        if (!power && term.includes('x')) power = '1';
+        if (power && power[0] === '^') power = power.substring(1);
+        if (term.includes('x') && coeff === '') coeff = '1';
+        if (coeff === '-') coeff = '-1';
+        if (!term.includes('x')) {
+          power = '0';
+          coeff = term;
+        }
+
+        const exp = parseInt(power);
+        const coefficient = parseFloat(coeff);
+
+        if (!isNaN(coefficient)) {
+          if (poly[exp]) poly[exp] += coefficient;
+          else poly[exp] = coefficient;
+        }
+      });
+
+      return poly;
+    }
+
+    function polynomialToString(poly) {
+      let str = '';
+      const sortedExps = Object.keys(poly).map(Number).sort((a, b) => b - a);
+      sortedExps.forEach(exp => {
+        const coeff = poly[exp];
+        if (coeff === 0) return;
+
+        let term = '';
+        if (coeff === 1 && exp !== 0) term = '';
+        else if (coeff === -1 && exp !== 0) term = '-';
+        else term = coeff.toString();
+
+        if (exp === 1) term += 'x';
+        else if (exp !== 0) term += `x^${exp}`;
+
+        if (str === '') str = term;
+        else str += (coeff > 0 ? ' + ' : ' - ') + term.replace('-', '');
+      });
+
+      return str === '' ? '0' : str;
+    }
+
+    function polynomialDegree(poly) {
+      return Math.max(...Object.keys(poly).map(Number), 0);
+    }
+
+    function polynomialDivision(dividend, divisor) {
+      const result = {};
+      const remainder = JSON.parse(JSON.stringify(dividend));
+
+      const divisorDegree = polynomialDegree(divisor);
+      const divisorLeadingCoeff = divisor[divisorDegree];
+
+      while (polynomialDegree(remainder) >= divisorDegree) {
+        const remainderDegree = polynomialDegree(remainder);
+        const remainderLeadingCoeff = remainder[remainderDegree];
+
+        const termDegree = remainderDegree - divisorDegree;
+        const termCoeff = remainderLeadingCoeff / divisorLeadingCoeff;
+
+        result[termDegree] = termCoeff;
+
+        for (const exp in divisor) {
+          const currentExp = parseInt(exp) + termDegree;
+          const value = divisor[exp] * termCoeff;
+
+          if (remainder[currentExp]) remainder[currentExp] -= value;
+          else remainder[currentExp] = -value;
+
+          if (Math.abs(remainder[currentExp]) < 1e-10) {
+            delete remainder[currentExp];
+          }
+        }
+      }
+
+      return { quotient: result, remainder: remainder };
+    }
+
+    function dividePolynomials() {
+      const dividendInput = document.getElementById('dividend').value;
+      const divisorInput = document.getElementById('divisor').value;
+
+      const dividend = parsePolynomial(dividendInput);
+      const divisor = parsePolynomial(divisorInput);
+
+      if (Object.keys(dividend).length === 0 || Object.keys(divisor).length === 0) {
+        document.getElementById('result').innerHTML = '<p>Unexpected polynom input!</p>';
+        return;
+      }
+
+      const { quotient, remainder } = polynomialDivision(dividend, divisor);
+
+      const resultHTML = `
+        <h3>Result:</h3>
+        <p><strong>Dividend:</strong> \\(${polynomialToString(dividend)}\\)</p>
+        <p><strong>Divisor:</strong> \\(${polynomialToString(divisor)}\\)</p>
+        <p><strong>Quotient:</strong> \\(${polynomialToString(quotient)}\\)</p>
+        <p><strong>Remainder:</strong> \\(${polynomialToString(remainder)}\\)</p>
+      `;
+
+      document.getElementById('result').innerHTML = resultHTML;
+      MathJax.typeset();
+    }
+  </script>
+</body>
+</html>
