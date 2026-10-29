@@ -106,6 +106,21 @@
       border-radius: 5px;
       color: black;
     }
+
+    .site-link {
+      display: block;
+      width: fit-content;
+      margin: 30px 0 0 auto;
+      font-size: 12px;
+      color: #ff714a;
+      text-decoration: none;
+      opacity: 0.85;
+    }
+
+    .site-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +143,8 @@
   </div>
   <button onclick="dividePolynomials()">Calculate</button>
   <div id="result"></div>
+
+  <a class="site-link" href="https://mustafaduran.dev" target="_blank" rel="noopener">mustafaduran.dev ↗</a>
 
   <!-- Polinom JS -->
   <script>
